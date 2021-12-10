@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">لیست وظایف</string>
+    <string name="AddTask">اضافه کردن وظیفه</string>
+    <string name="title">عنوان</string>
+    <string name="save">ذخیره</string>
+    <string name="titleTask">عنوان تسک</string>
+    <string name="search">جستجو</string>
+</resources>
