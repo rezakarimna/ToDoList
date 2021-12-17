@@ -17,8 +17,6 @@ class SqliteHelper(context: Context?) : SQLiteOpenHelper(context, "db_app", null
 
     }
 
-    private val sqliteDbWrite = writableDatabase!!
-    private val sqliteDbRead = readableDatabase!!
     private val contentValues = ContentValues()
 
     override fun onCreate(db: SQLiteDatabase?) {
@@ -47,6 +45,7 @@ class SqliteHelper(context: Context?) : SQLiteOpenHelper(context, "db_app", null
     }
 
     fun getLitTasks(): List<Task> {
+        val sqliteDbRead = readableDatabase!!
         val cursor: Cursor = sqliteDbRead.rawQuery("SELECT * FROM $TABLE_TASK ", null)
         var tasks = arrayListOf<Task>()
         if (cursor.moveToFirst()) {
@@ -63,6 +62,7 @@ class SqliteHelper(context: Context?) : SQLiteOpenHelper(context, "db_app", null
     }
 
     fun updateTask(task: Task): Int {
+        val sqliteDbWrite = writableDatabase!!
         contentValues.put("title", task.title)
         contentValues.put("completed", task.isCompleted)
         val result: Int =
@@ -71,8 +71,21 @@ class SqliteHelper(context: Context?) : SQLiteOpenHelper(context, "db_app", null
         return result
     }
 
-    fun searchInTasks(query: String) {
-
+    fun searchInTasks(query: String) : List<Task> {
+        val sqliteDbRead = readableDatabase!!
+        val cursor = sqliteDbRead.rawQuery("SELECT * FROM $TABLE_TASK WHERE title LIKE '& $query &' " , null)
+        var tasks = arrayListOf<Task>()
+        if (cursor.moveToFirst()) {
+            do {
+                val task = Task()
+                task.id = cursor.getLong(0)
+                task.title = cursor.getString(1)
+                task.isCompleted = cursor.getInt(2) == 1
+                tasks.add(task)
+            } while (cursor.moveToNext())
+        }
+        sqliteDbRead.close()
+        return tasks
     }
 
     fun deleteTask(task: Task): Int {
@@ -82,7 +95,14 @@ class SqliteHelper(context: Context?) : SQLiteOpenHelper(context, "db_app", null
         return result
     }
 
-    fun deleteTasks() {
+    fun clearAllTasks() {
+        try {
+            val sqliteDbWrite = writableDatabase!!
+            sqliteDbWrite.execSQL("DELETE FROM $TABLE_TASK")
+            sqliteDbWrite.close()
+        } catch (e : SQLiteException) {
+            Log.e(TAG, "onCreate: $e")
+        }
 
     }
 }

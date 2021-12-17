@@ -5,4 +5,5 @@
     <string name="save">ذخیره</string>
     <string name="titleTask">عنوان تسک</string>
     <string name="search">جستجو</string>
+    <string name="editTitleTask">ویرایش وظیفه</string>
 </resources>

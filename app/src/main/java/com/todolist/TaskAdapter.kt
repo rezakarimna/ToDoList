@@ -1,5 +1,6 @@
 package com.todolist
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -47,11 +48,23 @@ class TaskAdapter(private val eventListener: TaskItemEventListener) :
         }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun addListItem(tasks: List<Task>) {
         this.taskList.addAll(tasks)
         notifyDataSetChanged()
     }
 
+    @SuppressLint("NotifyDataSetChanged")
+    fun setTaskList(tasks: List<Task>) {
+        this.taskList = tasks.toMutableList()
+        notifyDataSetChanged()
+
+    }
+    @SuppressLint("NotifyDataSetChanged")
+    fun clearTaskList(){
+        this.taskList.clear()
+        notifyDataSetChanged()
+    }
     override fun getItemCount() = taskList.size
 
 
@@ -60,9 +73,20 @@ class TaskAdapter(private val eventListener: TaskItemEventListener) :
         var deleteBtn: View = itemView.findViewById(R.id.btn_task_delete)
 
         fun bindTask(task: Task) {
+            checkBox.setOnCheckedChangeListener(null)
             checkBox.isChecked = task.isCompleted
             checkBox.text = task.title
             deleteBtn.setOnClickListener { eventListener.onDeleteButtonClick(task) }
+
+            itemView.setOnLongClickListener {
+                eventListener.onItemLongPress(task)
+                return@setOnLongClickListener false
+            }
+
+            checkBox.setOnCheckedChangeListener { button, b ->
+                task.isCompleted = b
+                eventListener.onItemCheckedChange(task)
+            }
         }
     }
 

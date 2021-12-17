@@ -27,6 +27,7 @@ class EditTaskDialog : DialogFragment(), View.OnClickListener {
         val builder = AlertDialog.Builder(context)
         binding.btnDialogEditSave.setOnClickListener(this)
         builder.setView(binding.root)
+        binding.etDialogEditTitle.setText(task.title)
         return builder.create()
     }
 
@@ -37,7 +38,7 @@ class EditTaskDialog : DialogFragment(), View.OnClickListener {
 
     override fun onClick(v: View?) {
         when (v?.id) {
-            R.id.btn_dialog_save -> {
+            R.id.btn_dialogEdit_save -> {
                 saveNewTask()
             }
         }
