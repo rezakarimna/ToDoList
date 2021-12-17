@@ -3,7 +3,6 @@ package com.todolist
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -15,40 +14,45 @@ class MainActivity : AppCompatActivity(), AddTaskDialog.AddNewTaskCallBack,
     EditTaskDialog.EditTaskCallBack {
     lateinit var binding: ActivityMainBinding
     lateinit var taskAdapter: TaskAdapter
-    lateinit var sqliteHelper: SqliteHelper
+    lateinit var taskDao: TaskDao
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         init()
+        taskDao = AppDatabase.getAppDatabase(this)?.taskDao()!!
+
         binding.ivMainClearTasks.setOnClickListener {
-            sqliteHelper.clearAllTasks()
+            taskDao.deleteAll()
             taskAdapter.clearTaskList()
         }
+
         binding.fabMainAddNewTask.setOnClickListener {
             val taskDialog = AddTaskDialog()
             taskDialog.show(supportFragmentManager, null)
         }
+
         setupRecyclerView()
         searchTitleTasks()
     }
 
     private fun init() {
-        sqliteHelper = SqliteHelper(this)
         taskAdapter = TaskAdapter(this)
+
     }
 
     private fun setupRecyclerView() {
         binding.rvMainTasks.apply {
             layoutManager = LinearLayoutManager(this@MainActivity, RecyclerView.VERTICAL, false)
             adapter = taskAdapter
-            val tasks: List<Task> = sqliteHelper.getLitTasks()
+            val tasks = taskDao.all
             taskAdapter.addListItem(tasks)
         }
     }
 
     override fun onNewTask(task: Task) {
-        val taskId: Long = sqliteHelper.addTask(task)
+        val taskId: Long = taskDao.add(task)
         if (taskId > 0) {
             task.id = taskId
             taskAdapter.addItem(task)
@@ -58,7 +62,7 @@ class MainActivity : AppCompatActivity(), AddTaskDialog.AddNewTaskCallBack,
     }
 
     override fun onDeleteButtonClick(task: Task) {
-        val result = sqliteHelper.deleteTask(task)
+        val result = taskDao.delete(task)
         if (result > 0) {
             taskAdapter.deleteItem(task)
         }
@@ -75,23 +79,23 @@ class MainActivity : AppCompatActivity(), AddTaskDialog.AddNewTaskCallBack,
     }
 
     override fun onItemCheckedChange(task: Task) {
-        sqliteHelper.updateTask(task)
+        taskDao.update(task)
     }
 
     override fun onEditTask(task: Task) {
-        val result = sqliteHelper.updateTask(task)
+        val result = taskDao.update(task)
         if (result > 0) {
             taskAdapter.updateItem(task)
         }
     }
 
-    fun searchTitleTasks() {
+    private fun searchTitleTasks() {
         binding.etSearch.doOnTextChanged { text, start, before, count ->
             if (text?.length!! > 0) {
-                val tasks = sqliteHelper.searchInTasks(text.toString())
+                val tasks = taskDao.search(text.toString())
                 taskAdapter.setTaskList(tasks)
             } else {
-                val tasks = sqliteHelper.getLitTasks()
+                val tasks = taskDao.all
                 taskAdapter.setTaskList(tasks)
             }
         }
